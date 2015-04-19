@@ -1,0 +1,120 @@
+\documentclass{article}
+\title{OSEMN}
+\author {Lokender}
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+
+<<OSEMN,fig=TRUE>>=
+#install.packages("jsonlite")
+#install.packages("ggplot2")
+#install.packages("plyr")
+library(jsonlite)
+library (plyr)
+library (ggplot2)
+
+url  <- 'https://api.github.com/'                          
+# the GitHub API
+path <- 'search/repositories'                                
+# Repositories path
+search1 <- '?q=created%3A%222015-01-01+..+2015-01-31%22'     
+# Created in January of 2015
+search2 <- '?q=created%3A%222015-02-01+..+2015-02-28%22'     
+# Created in February of 2015
+searchR <- '+language:r'                                    
+# And language = R
+pageNo <- '&page=1'                                          
+# We can specify a page number
+pageSize <- '&per_page=1'                                    
+# 100 results per page is the max 
+
+URLJan <-paste0(url, path, search1, searchR, pageNo, pageSize)
+
+#Here is what URLJan looks like all together
+#URL <-'URL <- 'https://api.github.com/search/repositories
+#?q=created%3A%222015-01-01+..+2015-01-31%22+language:r&page=1&per_page=1'
+
+URLFeb <-paste0(url, path, search2, searchR, pageNo, pageSize)
+
+#Here is what URLFeb looks like all together
+#URL <-'URL <- 'https://api.github.com/search/repositories
+#?q=created%3A%222015-02-01+..+2015-02-28%22+language:r&page=1&per_page=1'
+
+# The above URL will create a page in json format
+# Read the json and convert it to a list using the jsonlite package
+l = jsonlite::fromJSON(URLJan)
+
+# Get number of Jan Repositories by capturing the total count
+repos.Jan <-l$total_count
+
+# The above URLFeb will create a page in json format
+# Read the json and convert it to a list using the jsonlite package
+j = jsonlite::fromJSON(URLFeb)
+
+# Get the number of Feb Repositories by capturing the total count
+repos.Feb <-j$total_count
+
+
+# Create a dataframe and use ggplot2 to create a bar graph
+# Dataframe will have 2 columns -- Months and repositaries
+months <-c("January", "February")
+repos <-c(repos.Jan, repos.Feb)
+
+#We use the data.frame function to bind the 2 columns together and create df
+df = data.frame(months, repos)
+
+#Finally, we create a bar chart
+ggplot(data=df, aes(x=months, y=repos, fill=months)) + geom_bar(stat="identity")+ggtitle("Number  of GitHub R repositories created")
+
+#polar coordinate graph
+ggplot(df,aes(x = factor(""), fill = months) ) + geom_bar() +coord_polar(theta = "y")+scale_x_discrete("")+ggtitle("Factor  of GitHub R repositories created")
+
+#pie chart
+pie(repos, labels = months, main="Pie Chart of Months")
+
+#line graph
+ggplot(data=df, aes(x=months, y=repos, group=1)) +
+    geom_line()+ggtitle("Factor  of GitHub R repositories created")
+
+#To get month with More GitHub R repositaries
+HighestMonth<- months[which.max(repos)]
+
+#summary() provides summary of data like min, max, mean, median. 
+Summary <- paste0(summary(df))
+
+#Str() provides great info about the structure of object. 
+str(df)
+
+#class() provides info about what is the data type 
+#stored like integer, number, data frame etc.
+dfclass <- class(df)
+monthclass <- class(months)
+reposclass <- class(repos)
+
+#view() is used to see the table in grid
+#view(df)
+#write.csv(df, "df.csv")
+@
+
+"Are there more GitHub R repositories created in February than January? 
+
+Repositories created in February are -\textbf{ \Sexpr{repos.Feb}}
+
+Repositories created in January are - \textbf{\Sexpr{repos.Jan}}
+
+\textbf{\Sexpr{HighestMonth} }has more repositaries created. 
+
+"
+
+
+References:
+
+1. RBlogger
+2. Discussion Board setup on ReggieNet -Forums / IT497 OSEMN Assignment Help / Reading JSON in R / Data gathering on Github
+3. Class Notes 
+4. R resources in ReggieNet under Resources and Material
+
+
+% $
+
+
+\end{document}
